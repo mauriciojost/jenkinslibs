@@ -1,4 +1,4 @@
-def scalaPipeline(Map params) {
+def call(Map params) {
 
   // https://jenkins.io/doc/book/pipeline/jenkinsfile/
   // Scripted pipeline (not declarative)
