@@ -7,13 +7,13 @@ def call(Map params) {
       pollSCM '* * * * *'
     }
     options {
-      buildDiscarder(logRotator(numToKeepStr: '10'))
+      buildDiscarder(logRotator(numToKeepStr: params['buildsToKeep']))
       disableConcurrentBuilds()
     }
     agent {
       docker { 
-        image 'mauriciojost/scala-sbt-ci:java-openjdk_8u171-scala-2.12.10-sbt-1.3.13-img-0.3.0'
-        args '--cpus=1 --memory=4G'
+        image params['dockerImage']
+        args params['dockerArgs']
       }
     }
     stages {
@@ -29,7 +29,7 @@ def call(Map params) {
       stage('Test') {
         steps {
           wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'gnome-terminal']) {
-            timeout(time: 15, unit: 'MINUTES') {
+            timeout(time: params['timeoutMinutes'], unit: 'MINUTES') {
               sh 'pwd'
               sh 'hostname'
               echo "My branch is: ${env.BRANCH_NAME}"
@@ -51,10 +51,10 @@ def call(Map params) {
     }
     post {  
       failure {  
-        emailext body: "<b>[JENKINS] Failure</b>Project: ${env.JOB_NAME} <br>Build Number: ${env.BUILD_NUMBER} <br> Build URL: ${env.BUILD_URL}", from: '', mimeType: 'text/html', replyTo: '', subject: "ERROR CI: ${env.JOB_NAME}", to: "mauriciojostx@gmail.com", attachLog: true, compressLog: false;
+        emailext body: "<b>[JENKINS] Failure</b>Project: ${env.JOB_NAME} <br>Build Number: ${env.BUILD_NUMBER} <br> Build URL: ${env.BUILD_URL}", from: '', mimeType: 'text/html', replyTo: '', subject: "ERROR CI: ${env.JOB_NAME}", to: params['email'], attachLog: true, compressLog: false;
       }  
       success {  
-        emailext body: "<b>[JENKINS] Success</b>Project: ${env.JOB_NAME} <br>Build Number: ${env.BUILD_NUMBER} <br> Build URL: ${env.BUILD_URL}", from: '', mimeType: 'text/html', replyTo: '', subject: "SUCCESS CI: ${env.JOB_NAME}", to: "mauriciojostx@gmail.com", attachLog: false, compressLog: false;
+        emailext body: "<b>[JENKINS] Success</b>Project: ${env.JOB_NAME} <br>Build Number: ${env.BUILD_NUMBER} <br> Build URL: ${env.BUILD_URL}", from: '', mimeType: 'text/html', replyTo: '', subject: "SUCCESS CI: ${env.JOB_NAME}", to: params['email'], attachLog: false, compressLog: false;
       }  
     }
   }
