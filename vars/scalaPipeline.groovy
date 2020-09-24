@@ -48,6 +48,17 @@ def call(Map params) {
           step([$class: 'ScoveragePublisher', reportDir: 'target/scala-2.12/scoverage-report', reportFile: 'scoverage.xml'])
         }
       }
+      stage('Package') {
+        when {
+          expression { params['package'] != null }
+        }
+        steps {
+          wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'gnome-terminal']) {
+            sh 'sbt -Dsbt.color=always -Dsbt.global.base=.sbt -Dsbt.boot.directory=.sbt -Dsbt.ivy.home=.ivy2 universal:packageBin'
+            sh 'mv target/universal/*.zip ' + params['package']
+          }
+        }
+      }
     }
     post {  
       failure {  
