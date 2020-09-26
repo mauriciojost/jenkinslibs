@@ -37,10 +37,15 @@ def call(Map params) {
               sh "${contextCmds}"
               sh "sbt ${sbtOpts} clean \"set every coverageEnabled := true\" test coverageReport"
               sh "sbt ${sbtOpts} coverageAggregate"
-              sh "sbt ${sbtOpts} universal:packageBin"
             }
           }
           step([$class: 'ScoveragePublisher', reportDir: 'target/scala-2.12/scoverage-report', reportFile: 'scoverage.xml'])
+          wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'gnome-terminal']) {
+            timeout(time: params['timeoutMinutes'], unit: 'MINUTES') {
+              sh "${contextCmds}"
+              sh "sbt ${sbtOpts} universal:packageBin"
+            }
+          }
         }
       }
       stage('Publish') {
@@ -62,6 +67,7 @@ def call(Map params) {
       }  
       success {  
         emailext body: "<b>[JENKINS] Success</b>Project: ${env.JOB_NAME} <br>Build Number: ${env.BUILD_NUMBER} <br> Build URL: ${env.BUILD_URL}", from: '', mimeType: 'text/html', replyTo: '', subject: "SUCCESS CI: ${env.JOB_NAME}", to: params['email'], attachLog: false, compressLog: false;
+        archiveArtifacts artifacts: 'target/universal/*.zip', fingerprint: true
       }  
     }
   }
