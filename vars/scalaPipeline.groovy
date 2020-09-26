@@ -1,5 +1,7 @@
 def call(Map params) {
 
+  String sbtOpts = "-Dsbt.color=always -Dsbt.global.base=.sbt -Dsbt.boot.directory=.sbt -Dsbt.ivy.home=.ivy2"
+  String contextCmds = "hostname && date && pwd && ls -lah"
   // https://jenkins.io/doc/book/pipeline/jenkinsfile/
   // Scripted pipeline (not declarative)
   pipeline {
@@ -15,8 +17,7 @@ def call(Map params) {
     stages {
       stage('Full fetch') {
         steps {
-          sh 'pwd'
-          sh 'hostname'
+          sh "${contextCmds}"
           sh 'git fetch --depth=10000'
           sh 'git fetch --tags'
         }
@@ -24,7 +25,7 @@ def call(Map params) {
 
       stage('Test / coverage / package') {
         agent {
-          docker { 
+          docker { // in $HOME of docker the workspace of the running job is mounted
             image params['dockerImage']
             args params['dockerArgs']
           }
@@ -32,12 +33,11 @@ def call(Map params) {
         steps {
           wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'gnome-terminal']) {
             timeout(time: params['timeoutMinutes'], unit: 'MINUTES') {
-              sh 'pwd'
-              sh 'hostname'
               echo "My branch is: ${env.BRANCH_NAME}"
-              sh 'sbt -Dsbt.color=always -Dsbt.global.base=.sbt -Dsbt.boot.directory=.sbt -Dsbt.ivy.home=.ivy2 clean "set every coverageEnabled := true" test coverageReport'
-              sh 'sbt -Dsbt.color=always -Dsbt.global.base=.sbt -Dsbt.boot.directory=.sbt -Dsbt.ivy.home=.ivy2 coverageAggregate'
-              sh 'sbt -Dsbt.color=always -Dsbt.global.base=.sbt -Dsbt.boot.directory=.sbt -Dsbt.ivy.home=.ivy2 universal:packageBin'
+              sh "${contextCmds}"
+              sh "sbt ${sbtOpts} clean \"set every coverageEnabled := true\" test coverageReport"
+              sh "sbt ${sbtOpts} coverageAggregate"
+              sh "sbt ${sbtOpts} universal:packageBin"
             }
           }
           step([$class: 'ScoveragePublisher', reportDir: 'target/scala-2.12/scoverage-report', reportFile: 'scoverage.xml'])
