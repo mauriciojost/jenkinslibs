@@ -27,7 +27,7 @@ def call(Map params) {
         agent {
           docker { // in $HOME of docker the workspace of the running job is mounted
             image params['dockerImage']
-            args params['dockerArgs']
+            args params['dockerArgs'] + ' --mount type=bind,src=' +  params['package'] + ',dst=' + params['package']
           }
         }
         steps {
@@ -40,13 +40,6 @@ def call(Map params) {
             }
           }
           step([$class: 'ScoveragePublisher', reportDir: 'target/scala-2.12/scoverage-report', reportFile: 'scoverage.xml'])
-          wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'gnome-terminal']) {
-            timeout(time: params['timeoutMinutes'], unit: 'MINUTES') {
-              sh "${contextCmds}"
-              sh "sbt ${sbtOpts} universal:packageBin"
-              sh 'ls -lah target/universal'
-            }
-          }
         }
       }
       stage('Publish') {
@@ -56,7 +49,7 @@ def call(Map params) {
         steps {
           wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'gnome-terminal']) {
             sh "${contextCmds}"
-            sh 'ls -lah target/universal'
+            sh "sbt ${sbtOpts} universal:packageBin"
             sh ('mv target/universal/*.zip ' + params['package'])
           }
         }
