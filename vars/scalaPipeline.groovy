@@ -49,7 +49,9 @@ def call(Map params) {
         }
         steps {
           wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'gnome-terminal']) {
-            sh 'mv target/universal/*.zip ' + params['package']
+            sh "${contextCmds}"
+            sh 'ls -lah target/universal'
+            sh ('mv target/universal/*.zip ' + params['package'])
           }
         }
       }
