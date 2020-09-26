@@ -44,6 +44,7 @@ def call(Map params) {
             timeout(time: params['timeoutMinutes'], unit: 'MINUTES') {
               sh "${contextCmds}"
               sh "sbt ${sbtOpts} universal:packageBin"
+              sh 'ls -lah target/universal'
             }
           }
         }
