@@ -10,12 +10,8 @@ def call(Map params) {
       buildDiscarder(logRotator(numToKeepStr: params['buildsToKeep']))
       disableConcurrentBuilds()
     }
-    agent {
-      docker { 
-        image params['dockerImage']
-        args params['dockerArgs']
-      }
-    }
+    agent any // run in current physical node unless told otherwise
+    
     stages {
       stage('Full fetch') {
         steps {
@@ -26,7 +22,13 @@ def call(Map params) {
         }
       }
 
-      stage('Test') {
+      stage('Test / coverage / package') {
+        agent {
+          docker { 
+            image params['dockerImage']
+            args params['dockerArgs']
+          }
+        }
         steps {
           wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'gnome-terminal']) {
             timeout(time: params['timeoutMinutes'], unit: 'MINUTES') {
@@ -34,27 +36,18 @@ def call(Map params) {
               sh 'hostname'
               echo "My branch is: ${env.BRANCH_NAME}"
               sh 'sbt -Dsbt.color=always -Dsbt.global.base=.sbt -Dsbt.boot.directory=.sbt -Dsbt.ivy.home=.ivy2 clean "set every coverageEnabled := true" test coverageReport'
-            }
-          }
-        }
-      }
-      stage('Coverage') {
-        steps {
-          wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'gnome-terminal']) {
-            sh 'pwd'
-            sh 'hostname'
             sh 'sbt -Dsbt.color=always -Dsbt.global.base=.sbt -Dsbt.boot.directory=.sbt -Dsbt.ivy.home=.ivy2 coverageAggregate'
+            sh 'sbt -Dsbt.color=always -Dsbt.global.base=.sbt -Dsbt.boot.directory=.sbt -Dsbt.ivy.home=.ivy2 universal:packageBin'
           }
           step([$class: 'ScoveragePublisher', reportDir: 'target/scala-2.12/scoverage-report', reportFile: 'scoverage.xml'])
         }
       }
-      stage('Package') {
+      stage('Publish') {
         when {
           expression { params['package'] != null }
         }
         steps {
           wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'gnome-terminal']) {
-            sh 'sbt -Dsbt.color=always -Dsbt.global.base=.sbt -Dsbt.boot.directory=.sbt -Dsbt.ivy.home=.ivy2 universal:packageBin'
             sh 'mv target/universal/*.zip ' + params['package']
           }
         }
