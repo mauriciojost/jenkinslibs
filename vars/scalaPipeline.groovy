@@ -1,6 +1,5 @@
 def call(Map params) {
-
-  String sbtOpts = "-Dsbt.color=always -Dsbt.global.base=.sbt -Dsbt.boot.directory=.sbt -Dsbt.ivy.home=.ivy2"
+  String sbtOpts = (params['sbtOpts']==null?"":params['sbtOpts']) + " -Dsbt.color=always -Dsbt.global.base=.sbt -Dsbt.boot.directory=.sbt -Dsbt.ivy.home=.ivy2"
   String contextCmds = "hostname && date && pwd && ls -lah"
   // https://jenkins.io/doc/book/pipeline/jenkinsfile/
   // Scripted pipeline (not declarative)
