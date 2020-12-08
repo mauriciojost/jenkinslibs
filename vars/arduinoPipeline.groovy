@@ -47,25 +47,27 @@ def call(Map params) {
               }
             }
           }
-          stage('Test') {
-            steps {
-              wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
-                sh './launch_tests'
+          parallel {
+            stage('Test') {
+              steps {
+                wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
+                  sh './launch_tests'
+                }
               }
             }
-          }
-          stage('Simulate') {
-            steps {
-              wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
-                sh './simulate profiles/simulate.prof 1 10' 
+            stage('Simulate') {
+              steps {
+                wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
+                  sh './simulate profiles/simulate.prof 1 10' 
+                }
               }
             }
-          }
-          stage('Artifact') {
-            steps {
-              wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
-                sh './upload -n esp8266 -p profiles/generic.prof -e' // shared volume with docker container
-                sh './upload -n esp32 -p profiles/generic.prof -e' // shared volume with docker container
+            stage('Artifact') {
+              steps {
+                wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
+                  sh './upload -n esp8266 -p profiles/generic.prof -e' // shared volume with docker container
+                  sh './upload -n esp32 -p profiles/generic.prof -e' // shared volume with docker container
+                }
               }
             }
           }
