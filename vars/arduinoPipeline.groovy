@@ -55,7 +55,6 @@ def call(Map params) {
               }
             }
           }
-          parallel {
             stage('Test') {
               steps {
                 wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
@@ -78,12 +77,11 @@ def call(Map params) {
                     do
                       for feature in $(cat .feature_branches.build)
                       do
-				    					  if [ "$feature" == "generic" ]
-						    				then
+                        if [ "$feature" == "generic" ]
+                          then
                           ./upload -n "$platform" -p "profiles/$feature.prof" -e
-										    else
-		    								  ./upload -n "$platform" -p "profiles/$feature.prof" -e -t "$feature"
-				    						fi
+                          else
+                            ./upload -n "$platform" -p "profiles/$feature.prof" -e -t "$feature"
                       done
                     done
                   '''
