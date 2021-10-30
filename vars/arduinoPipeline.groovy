@@ -78,10 +78,11 @@ def call(Map params) {
                       for feature in $(cat .feature_branches.build)
                       do
                         if [ "$feature" == "generic" ]
-                          then
+                        then
                           ./upload -n "$platform" -p "profiles/$feature.prof" -e
-                          else
-                            ./upload -n "$platform" -p "profiles/$feature.prof" -e -t "$feature"
+                        else
+                          ./upload -n "$platform" -p "profiles/$feature.prof" -e -t "$feature"
+                        fi
                       done
                     done
                   '''
