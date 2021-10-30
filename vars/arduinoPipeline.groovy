@@ -15,6 +15,14 @@ def call(Map params) {
       stage('Build & deliver') {
         agent { docker params['dockerImage'] }
         stages {
+          stage('Context') {
+            steps {
+              script {
+                sh 'platformio --version'
+                sh 'platformio platform list'
+              }
+            }
+          }
           stage('Scripts prepared') {
             steps {
               script {
@@ -65,9 +73,20 @@ def call(Map params) {
             stage('Artifact') {
               steps {
                 wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
-                  sh './upload -n esp8266 -p profiles/generic.prof -e' // shared volume with docker container
-                  sh './upload -n esp32 -p profiles/generic.prof -e' // shared volume with docker container
-                }
+                  sh '''
+                    for platform in $(cat .platforms.build)
+                    do
+                      for feature in $(cat .feature_branches.build)
+                      do
+				    					  if [ "$feature" == "generic" ]
+						    				then
+                          ./upload -n "$platform" -p "profiles/$feature.prof" -e
+										    else
+		    								  ./upload -n "$platform" -p "profiles/$feature.prof" -e -t "$feature"
+				    						fi
+                      done
+                    done
+                  '''
               }
             }
           }
@@ -86,7 +105,7 @@ def call(Map params) {
           stage('Publish') {
             steps {
               wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
-                sh 'bash ./misc/scripts/expose_artifacts'
+                sh 'bash ./libs/arduino-cicd/expose_artifacts'
               }
             }
           }
