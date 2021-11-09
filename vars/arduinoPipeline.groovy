@@ -72,7 +72,7 @@ def call(Map params) {
             stage('Artifact') {
               steps {
                 wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
-                  sh '''
+                  sh '''#!/bin/bash
                     for platform in $(cat .platforms.build)
                     do
                       for feature in $(cat .feature_branches.build)
