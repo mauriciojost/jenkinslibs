@@ -20,6 +20,9 @@ def call(Map params) {
               script {
                 sh 'platformio --version'
                 sh 'platformio platform list'
+                sh 'cd libs'
+                sh 'git clone https://github.com/mauriciojost/arduino-cicd.git'
+                sh 'cd ..'
               }
             }
           }
@@ -56,6 +59,9 @@ def call(Map params) {
             }
           }
             stage('Test') {
+              when {
+                expression { params.containsKey('testDisabled') }
+              }
               steps {
                 wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
                   sh './launch_tests'
@@ -63,6 +69,9 @@ def call(Map params) {
               }
             }
             stage('Simulate') {
+              when {
+                expression { params.containsKey('simulationDisabled') }
+              }
               steps {
                 wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
                   sh './simulate profiles/simulate.prof 1 10' 
@@ -70,6 +79,9 @@ def call(Map params) {
               }
             }
             stage('Artifact') {
+              when {
+                expression { params.containsKey('artifactsDisabled') }
+              }
               steps {
                 wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
                   sh '''#!/bin/bash
@@ -102,6 +114,9 @@ def call(Map params) {
         agent any
         stages {
           stage('Publish') {
+            when {
+              expression { params.containsKey('publishDisabled') }
+            }
             steps {
               wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
                 sh 'bash ./libs/arduino-cicd/expose_artifacts'
