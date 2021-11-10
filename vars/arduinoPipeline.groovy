@@ -21,8 +21,7 @@ def call(Map params) {
                 sh 'platformio --version'
                 sh 'platformio platform list'
                 sh 'mkdir -p .cicd'
-                sh 'cd .cicd'
-                sh 'git clone https://github.com/mauriciojost/arduino-cicd.git'
+                sh 'cd .cicd && git clone https://github.com/mauriciojost/arduino-cicd.git'
                 sh 'cd ..'
               }
             }
