@@ -20,7 +20,8 @@ def call(Map params) {
               script {
                 sh 'platformio --version'
                 sh 'platformio platform list'
-                sh 'cd libs'
+                sh 'mkdir -p .cicds'
+                sh 'cd .cicd'
                 sh 'git clone https://github.com/mauriciojost/arduino-cicd.git'
                 sh 'cd ..'
               }
@@ -119,7 +120,7 @@ def call(Map params) {
             }
             steps {
               wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
-                sh 'bash ./libs/arduino-cicd/expose_artifacts'
+                sh 'bash ./.cicd/arduino-cicd/expose_artifacts'
               }
             }
           }
