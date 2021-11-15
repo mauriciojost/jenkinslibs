@@ -58,7 +58,7 @@ def call(Map params) {
           }
             stage('Test') {
               when {
-                expression { params.get('testDisabled', 'true') != 'true' }
+                expression { ! params.get('testDisabled', true) }
               }
               steps {
                 wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
@@ -68,7 +68,7 @@ def call(Map params) {
             }
             stage('Simulate') {
               when {
-                expression { params.get('simulationDisabled', 'true') != 'true' }
+                expression { ! params.get('simulationDisabled', true) }
               }
               steps {
                 wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
@@ -78,7 +78,7 @@ def call(Map params) {
             }
             stage('Artifact') {
               when {
-                expression { params.get('artifactsDisabled', 'true') != 'true' }
+                expression { ! params.get('artifactsDisabled', true) }
               }
               steps {
                 wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
@@ -113,7 +113,7 @@ def call(Map params) {
         stages {
           stage('Publish') {
             when {
-              expression { params.get('publishDisabled', 'true') != 'true' }
+              expression { ! params.get('publishDisabled', true) }
             }
             steps {
               wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
